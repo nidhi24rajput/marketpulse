@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics
+  namespace: marketpulse
+  labels:
+    app: analytics
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: analytics
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: analytics
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "8081"
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: analytics
+          image: ghcr.io/nidhi24rajput/marketpulse-analytics:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8081
+              name: http
+          envFrom:
+            - configMapRef:
+                name: marketpulse-config
+            - secretRef:
+                name: marketpulse-secrets
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytics
+  namespace: marketpulse
+spec:
+  selector:
+    app: analytics
+  ports:
+    - port: 80
+      targetPort: 8081
+      name: http
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: marketpulse-ingress
+  namespace: marketpulse
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: api.marketpulse.example.com
+      http:
+        paths:
+          - path: /v1/events
+            pathType: Prefix
+            backend:
+              service:
+                name: ingestion
+                port:
+                  number: 80
+          - path: /v1/analytics
+            pathType: Prefix
+            backend:
+              service:
+                name: analytics
+                port:
+                  number: 80

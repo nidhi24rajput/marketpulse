@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: processor
+  namespace: marketpulse
+  labels:
+    app: processor
+spec:
+  # Keep replicas equal to Kafka partition count to maximise parallelism.
+  # With 3 partitions: 3 replicas, each owns 1 partition.
+  replicas: 3
+  selector:
+    matchLabels:
+      app: processor
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: processor
+    spec:
+      terminationGracePeriodSeconds: 60   # give time to finish in-flight messages
+      containers:
+        - name: processor
+          image: ghcr.io/nidhi24rajput/marketpulse-processor:latest
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: marketpulse-config
+            - secretRef:
+                name: marketpulse-secrets
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "512Mi"
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false

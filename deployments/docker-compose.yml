@@ -1,0 +1,150 @@
+version: "3.9"
+
+# MarketPulse — Local Development Stack
+# Run: docker compose up -d
+# Seed data: go run ./scripts/seed --days=30 --orders=300
+
+services:
+
+  # ── Infrastructure ──────────────────────────────────────────────────────────
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    depends_on:
+      - kafka
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+
+  mongodb:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: marketpulse
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.2-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── Application Services ────────────────────────────────────────────────────
+
+  ingestion:
+    build:
+      context: ..
+      dockerfile: deployments/Dockerfile.ingestion
+    ports:
+      - "8080:8080"
+    environment:
+      APP_ENV: development
+      INGESTION_PORT: "8080"
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_EVENT_TOPIC: ecommerce.events
+      MONGO_URI: mongodb://root:password@mongodb:27017/marketpulse?authSource=admin
+      MONGO_DATABASE: marketpulse
+      REDIS_ADDR: redis:6379
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: on-failure
+
+  processor:
+    build:
+      context: ..
+      dockerfile: deployments/Dockerfile.processor
+    environment:
+      APP_ENV: development
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_EVENT_TOPIC: ecommerce.events
+      KAFKA_CONSUMER_GROUP: marketpulse-processor
+      MONGO_URI: mongodb://root:password@mongodb:27017/marketpulse?authSource=admin
+      MONGO_DATABASE: marketpulse
+      REDIS_ADDR: redis:6379
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: on-failure
+
+  analytics:
+    build:
+      context: ..
+      dockerfile: deployments/Dockerfile.analytics
+    ports:
+      - "8081:8081"
+    environment:
+      APP_ENV: development
+      ANALYTICS_PORT: "8081"
+      MONGO_URI: mongodb://root:password@mongodb:27017/marketpulse?authSource=admin
+      MONGO_DATABASE: marketpulse
+      REDIS_ADDR: redis:6379
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  mongo_data:

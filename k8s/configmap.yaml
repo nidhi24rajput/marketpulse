@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: marketpulse-config
+  namespace: marketpulse
+data:
+  APP_ENV: "production"
+  INGESTION_PORT: "8080"
+  ANALYTICS_PORT: "8081"
+  KAFKA_EVENT_TOPIC: "ecommerce.events"
+  KAFKA_CONSUMER_GROUP: "marketpulse-processor"
+  MONGO_DATABASE: "marketpulse"
+  REDIS_DB: "0"
+  REDIS_CACHE_TTL_SECONDS: "300"
+  METRICS_ENABLED: "true"
