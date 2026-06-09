@@ -34,7 +34,8 @@ func TestStoreIDRequired_WithHeader(t *testing.T) {
 
 	router := gin.New()
 	router.GET("/test", middleware.StoreIDRequired(), func(c *gin.Context) {
-		capturedStoreID, _ = c.Get("store_id")
+		val, _ := c.Get("store_id")
+		capturedStoreID = val.(string)
 		c.Status(http.StatusOK)
 	})
 
