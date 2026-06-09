@@ -1,6 +1,7 @@
 package middleware_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -23,7 +24,7 @@ func TestStoreIDRequired_MissingHeader(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/test", nil)
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
@@ -34,13 +35,12 @@ func TestStoreIDRequired_WithHeader(t *testing.T) {
 
 	router := gin.New()
 	router.GET("/test", middleware.StoreIDRequired(), func(c *gin.Context) {
-		val, _ := c.Get("store_id")
-		capturedStoreID = val.(string)
+		capturedStoreID = c.GetString("store_id")
 		c.Status(http.StatusOK)
 	})
 
 	w := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/test", nil)
 	req.Header.Set("X-Store-ID", "my-store")
 	router.ServeHTTP(w, req)
 
@@ -55,7 +55,7 @@ func TestStoreIDRequired_WithHeader_EmptyValue(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/test", nil)
 	req.Header.Set("X-Store-ID", "") // empty — should fail
 	router.ServeHTTP(w, req)
 
@@ -71,7 +71,7 @@ func TestRecovery_PanicReturns500(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/panic", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/panic", nil)
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)

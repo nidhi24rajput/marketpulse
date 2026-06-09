@@ -8,6 +8,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -24,7 +25,7 @@ var (
 	numOrders    = flag.Int("orders", 200, "Number of orders to create")
 )
 
-// Realistic product catalog
+// Realistic product catalog.
 var products = []struct {
 	ID       string
 	Name     string
@@ -90,7 +91,7 @@ func main() {
 
 			// Page view
 			sendEvent(client, "page_view", sessionID, userID, country, sessionStart, map[string]any{
-				"page": "/",
+				"page":     "/",
 				"referrer": "google.com",
 			})
 			totalEvents++
@@ -193,7 +194,7 @@ func sendEvent(client *http.Client, eventType, sessionID, userID, country string
 		"properties": props,
 		"timestamp":  ts,
 	}
-	post(client, "/v1/events", payload)
+	_ = post(client, "/v1/events", payload)
 }
 
 func sendOrder(client *http.Client, order map[string]any, ts time.Time) error {
@@ -207,7 +208,7 @@ func post(client *http.Client, path string, body any) error {
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, *ingestionURL+path, bytes.NewReader(data))
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, *ingestionURL+path, bytes.NewReader(data))
 	if err != nil {
 		return err
 	}
@@ -218,7 +219,7 @@ func post(client *http.Client, path string, body any) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= 400 {
 		return fmt.Errorf("HTTP %d from %s", resp.StatusCode, path)

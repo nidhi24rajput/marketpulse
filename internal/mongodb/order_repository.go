@@ -45,7 +45,7 @@ func (r *OrderRepo) FindByID(ctx context.Context, id string) (*domain.Order, err
 func (r *OrderRepo) FindByStore(ctx context.Context, storeID string, from, to time.Time, limit int) ([]*domain.Order, error) {
 	cursor, err := r.coll.Find(ctx,
 		bson.M{
-			"store_id": storeID,
+			"store_id":  storeID,
 			"placed_at": bson.M{"$gte": from, "$lte": to},
 		},
 		options.Find().
@@ -55,7 +55,7 @@ func (r *OrderRepo) FindByStore(ctx context.Context, storeID string, from, to ti
 	if err != nil {
 		return nil, fmt.Errorf("order_repo: find by store failed: %w", err)
 	}
-	defer cursor.Close(ctx)
+	defer func() { _ = cursor.Close(ctx) }()
 	var orders []*domain.Order
 	if err := cursor.All(ctx, &orders); err != nil {
 		return nil, err

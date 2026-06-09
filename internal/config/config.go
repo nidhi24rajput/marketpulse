@@ -1,3 +1,4 @@
+// Package config loads and holds all application configuration from environment variables.
 package config
 
 import (
@@ -10,17 +11,17 @@ import (
 
 // Config holds all application configuration loaded from environment variables.
 type Config struct {
-	App      AppConfig
-	Mongo    MongoConfig
-	Kafka    KafkaConfig
-	Redis    RedisConfig
-	Metrics  MetricsConfig
+	App     AppConfig
+	Mongo   MongoConfig
+	Kafka   KafkaConfig
+	Redis   RedisConfig
+	Metrics MetricsConfig
 }
 
 type AppConfig struct {
-	Env            string
-	IngestionPort  string
-	AnalyticsPort  string
+	Env             string
+	IngestionPort   string
+	AnalyticsPort   string
 	ShutdownTimeout time.Duration
 }
 

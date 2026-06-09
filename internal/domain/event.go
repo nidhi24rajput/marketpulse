@@ -14,30 +14,30 @@ import (
 type EventType string
 
 const (
-	EventTypePageView     EventType = "page_view"
-	EventTypeProductView  EventType = "product_view"
-	EventTypeAddToCart    EventType = "add_to_cart"
+	EventTypePageView       EventType = "page_view"
+	EventTypeProductView    EventType = "product_view"
+	EventTypeAddToCart      EventType = "add_to_cart"
 	EventTypeRemoveFromCart EventType = "remove_from_cart"
-	EventTypeCheckoutStart EventType = "checkout_start"
-	EventTypeOrderPlaced  EventType = "order_placed"
-	EventTypeOrderPaid    EventType = "order_paid"
-	EventTypeOrderShipped EventType = "order_shipped"
-	EventTypeSearch       EventType = "search"
+	EventTypeCheckoutStart  EventType = "checkout_start"
+	EventTypeOrderPlaced    EventType = "order_placed"
+	EventTypeOrderPaid      EventType = "order_paid"
+	EventTypeOrderShipped   EventType = "order_shipped"
+	EventTypeSearch         EventType = "search"
 )
 
 // Event is the fundamental unit of tracking — every user action emits one.
 type Event struct {
-	ID         string            `json:"id" bson:"_id"`
-	Type       EventType         `json:"type" bson:"type"`
-	SessionID  string            `json:"session_id" bson:"session_id"`
-	UserID     string            `json:"user_id,omitempty" bson:"user_id,omitempty"`
-	StoreID    string            `json:"store_id" bson:"store_id"`
-	Properties map[string]any    `json:"properties" bson:"properties"`
-	Timestamp  time.Time         `json:"timestamp" bson:"timestamp"`
-	ReceivedAt time.Time         `json:"received_at" bson:"received_at"`
-	IP         string            `json:"ip,omitempty" bson:"ip,omitempty"`
-	UserAgent  string            `json:"user_agent,omitempty" bson:"user_agent,omitempty"`
-	Country    string            `json:"country,omitempty" bson:"country,omitempty"`
+	ID         string         `json:"id" bson:"_id"`
+	Type       EventType      `json:"type" bson:"type"`
+	SessionID  string         `json:"session_id" bson:"session_id"`
+	UserID     string         `json:"user_id,omitempty" bson:"user_id,omitempty"`
+	StoreID    string         `json:"store_id" bson:"store_id"`
+	Properties map[string]any `json:"properties" bson:"properties"`
+	Timestamp  time.Time      `json:"timestamp" bson:"timestamp"`
+	ReceivedAt time.Time      `json:"received_at" bson:"received_at"`
+	IP         string         `json:"ip,omitempty" bson:"ip,omitempty"`
+	UserAgent  string         `json:"user_agent,omitempty" bson:"user_agent,omitempty"`
+	Country    string         `json:"country,omitempty" bson:"country,omitempty"`
 }
 
 // Validate checks that the event carries the minimum required fields.

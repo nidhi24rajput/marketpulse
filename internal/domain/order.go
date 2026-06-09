@@ -30,20 +30,20 @@ type LineItem struct {
 
 // Order captures a completed customer purchase.
 type Order struct {
-	ID          string      `json:"id" bson:"_id"`
-	StoreID     string      `json:"store_id" bson:"store_id"`
-	SessionID   string      `json:"session_id" bson:"session_id"`
-	UserID      string      `json:"user_id" bson:"user_id"`
-	Status      OrderStatus `json:"status" bson:"status"`
-	LineItems   []LineItem  `json:"line_items" bson:"line_items"`
-	Subtotal    float64     `json:"subtotal" bson:"subtotal"`
-	Tax         float64     `json:"tax" bson:"tax"`
-	Shipping    float64     `json:"shipping" bson:"shipping"`
-	Total       float64     `json:"total" bson:"total"`
-	Currency    string      `json:"currency" bson:"currency"`
-	Country     string      `json:"country" bson:"country"`
-	PlacedAt    time.Time   `json:"placed_at" bson:"placed_at"`
-	UpdatedAt   time.Time   `json:"updated_at" bson:"updated_at"`
+	ID        string      `json:"id" bson:"_id"`
+	StoreID   string      `json:"store_id" bson:"store_id"`
+	SessionID string      `json:"session_id" bson:"session_id"`
+	UserID    string      `json:"user_id" bson:"user_id"`
+	Status    OrderStatus `json:"status" bson:"status"`
+	LineItems []LineItem  `json:"line_items" bson:"line_items"`
+	Subtotal  float64     `json:"subtotal" bson:"subtotal"`
+	Tax       float64     `json:"tax" bson:"tax"`
+	Shipping  float64     `json:"shipping" bson:"shipping"`
+	Total     float64     `json:"total" bson:"total"`
+	Currency  string      `json:"currency" bson:"currency"`
+	Country   string      `json:"country" bson:"country"`
+	PlacedAt  time.Time   `json:"placed_at" bson:"placed_at"`
+	UpdatedAt time.Time   `json:"updated_at" bson:"updated_at"`
 }
 
 // CalculateTotals recomputes subtotal and total from line items.

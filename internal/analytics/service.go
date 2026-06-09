@@ -138,8 +138,8 @@ func (s *Service) RealtimeStats(ctx context.Context, storeID string) (*domain.Re
 	sessionKey := fmt.Sprintf("rt:sessions:%s", storeID)
 
 	var eventCount, orderCount int64
-	s.redis.Get(ctx, eventKey, &eventCount)  //nolint:errcheck
-	s.redis.Get(ctx, orderKey, &orderCount)  //nolint:errcheck
+	s.redis.Get(ctx, eventKey, &eventCount) //nolint:errcheck
+	s.redis.Get(ctx, orderKey, &orderCount) //nolint:errcheck
 
 	sessions, _ := s.redis.SCard(ctx, sessionKey)
 

@@ -24,10 +24,10 @@ type TopProduct struct {
 
 // FunnelStep represents conversion at each step of the purchase funnel.
 type FunnelStep struct {
-	Step        string  `json:"step"`
-	EventType   EventType `json:"event_type"`
-	Count       int64   `json:"count"`
-	Conversion  float64 `json:"conversion_rate"` // relative to previous step
+	Step       string    `json:"step"`
+	EventType  EventType `json:"event_type"`
+	Count      int64     `json:"count"`
+	Conversion float64   `json:"conversion_rate"` // relative to previous step
 }
 
 // Funnel is the full conversion funnel analysis for a store in a time range.
@@ -40,13 +40,13 @@ type Funnel struct {
 
 // RealtimeStats is a snapshot of activity in the last N minutes.
 type RealtimeStats struct {
-	StoreID          string    `json:"store_id"`
-	ActiveSessions   int64     `json:"active_sessions"`
-	EventsLast5Min   int64     `json:"events_last_5min"`
-	OrdersLast5Min   int64     `json:"orders_last_5min"`
-	RevenueLast5Min  float64   `json:"revenue_last_5min"`
-	TopPageLastHour  string    `json:"top_page_last_hour"`
-	UpdatedAt        time.Time `json:"updated_at"`
+	StoreID         string    `json:"store_id"`
+	ActiveSessions  int64     `json:"active_sessions"`
+	EventsLast5Min  int64     `json:"events_last_5min"`
+	OrdersLast5Min  int64     `json:"orders_last_5min"`
+	RevenueLast5Min float64   `json:"revenue_last_5min"`
+	TopPageLastHour string    `json:"top_page_last_hour"`
+	UpdatedAt       time.Time `json:"updated_at"`
 }
 
 // DailyAggregate is a pre-computed rollup stored in MongoDB for fast reads.

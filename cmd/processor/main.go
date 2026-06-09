@@ -20,7 +20,7 @@ import (
 
 func main() {
 	log, _ := zap.NewProduction()
-	defer log.Sync()
+	defer func() { _ = log.Sync() }()
 
 	cfg, err := config.Load()
 	if err != nil {
@@ -35,7 +35,9 @@ func main() {
 	defer func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*cfg.App.ShutdownTimeout)
 		defer cancel()
-		mongo.Disconnect(ctx)
+		if err := mongo.Disconnect(ctx); err != nil {
+			log.Warn("mongo disconnect error", zap.Error(err))
+		}
 	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*cfg.App.ShutdownTimeout)
@@ -49,7 +51,7 @@ func main() {
 	if err != nil {
 		log.Fatal("redis connect failed", zap.Error(err))
 	}
-	defer redisClient.Close()
+	defer func() { _ = redisClient.Close() }()
 
 	// ── Repositories ──────────────────────────────────────────────────────────
 	eventRepo := mongodb.NewEventRepo(mongo)
@@ -66,7 +68,7 @@ func main() {
 	if err != nil {
 		log.Fatal("kafka consumer failed", zap.Error(err))
 	}
-	defer consumer.Close()
+	defer func() { _ = consumer.Close() }()
 
 	// ── Processor ────────────────────────────────────────────────────────────
 	processor := NewProcessor(eventRepo, orderRepo, aggRepo, redisClient, log)

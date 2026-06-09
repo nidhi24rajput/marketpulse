@@ -35,7 +35,7 @@ func NewConsumer(brokers, groupID string, topics []string, log *zap.Logger) (*Co
 		MinBytes:       1024,      // 1KB
 		MaxBytes:       10e6,      // 10MB
 		MaxWait:        500 * time.Millisecond,
-		CommitInterval: 0,         // manual commit — we call CommitMessages explicitly
+		CommitInterval: 0, // manual commit — we call CommitMessages explicitly
 		StartOffset:    kafka.FirstOffset,
 		// Retry on temporary errors
 		MaxAttempts: 3,

@@ -30,12 +30,12 @@ func NewHandler(svc *analytics.Service, log *zap.Logger) *Handler {
 // @Param       from        query    string false "Start date (YYYY-MM-DD), default 30 days ago"
 // @Param       to          query    string false "End date (YYYY-MM-DD), default today"
 // @Success     200 {array} domain.DailyAggregate
-// @Router      /v1/analytics/revenue [get]
+// @Router      /v1/analytics/revenue [get].
 func (h *Handler) Revenue(c *gin.Context) {
-	storeID, _ := c.Get("store_id")
+	storeID := c.GetString("store_id")
 	from, to := parseDateRange(c)
 
-	data, err := h.svc.RevenueOverview(c.Request.Context(), storeID.(string), from, to)
+	data, err := h.svc.RevenueOverview(c.Request.Context(), storeID, from, to)
 	if err != nil {
 		h.log.Error("revenue query failed", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch revenue data"})
@@ -53,12 +53,12 @@ func (h *Handler) Revenue(c *gin.Context) {
 // @Param       from        query    string false "Start date"
 // @Param       to          query    string false "End date"
 // @Success     200 {object} domain.Funnel
-// @Router      /v1/analytics/funnel [get]
+// @Router      /v1/analytics/funnel [get].
 func (h *Handler) Funnel(c *gin.Context) {
-	storeID, _ := c.Get("store_id")
+	storeID := c.GetString("store_id")
 	from, to := parseDateRange(c)
 
-	funnel, err := h.svc.ConversionFunnel(c.Request.Context(), storeID.(string), from, to)
+	funnel, err := h.svc.ConversionFunnel(c.Request.Context(), storeID, from, to)
 	if err != nil {
 		h.log.Error("funnel query failed", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to compute funnel"})
@@ -75,13 +75,13 @@ func (h *Handler) Funnel(c *gin.Context) {
 // @Param       X-Store-ID  header   string true  "Store identifier"
 // @Param       limit       query    int    false  "Number of products (default 10, max 50)"
 // @Success     200 {array} domain.TopProduct
-// @Router      /v1/analytics/top-products [get]
+// @Router      /v1/analytics/top-products [get].
 func (h *Handler) TopProducts(c *gin.Context) {
-	storeID, _ := c.Get("store_id")
+	storeID := c.GetString("store_id")
 	from, to := parseDateRange(c)
 	limit := parseLimit(c, 10, 50)
 
-	products, err := h.svc.TopProducts(c.Request.Context(), storeID.(string), from, to, limit)
+	products, err := h.svc.TopProducts(c.Request.Context(), storeID, from, to, limit)
 	if err != nil {
 		h.log.Error("top products query failed", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch top products"})
@@ -97,11 +97,11 @@ func (h *Handler) TopProducts(c *gin.Context) {
 // @Produce     json
 // @Param       X-Store-ID  header string true "Store identifier"
 // @Success     200 {object} domain.RealtimeStats
-// @Router      /v1/analytics/realtime [get]
+// @Router      /v1/analytics/realtime [get].
 func (h *Handler) Realtime(c *gin.Context) {
-	storeID, _ := c.Get("store_id")
+	storeID := c.GetString("store_id")
 
-	stats, err := h.svc.RealtimeStats(c.Request.Context(), storeID.(string))
+	stats, err := h.svc.RealtimeStats(c.Request.Context(), storeID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch realtime stats"})
 		return
@@ -111,11 +111,11 @@ func (h *Handler) Realtime(c *gin.Context) {
 
 // TopSearches returns the most popular search queries.
 func (h *Handler) TopSearches(c *gin.Context) {
-	storeID, _ := c.Get("store_id")
+	storeID := c.GetString("store_id")
 	from, to := parseDateRange(c)
 	limit := parseLimit(c, 20, 100)
 
-	terms, err := h.svc.TopSearchTerms(c.Request.Context(), storeID.(string), from, to, limit)
+	terms, err := h.svc.TopSearchTerms(c.Request.Context(), storeID, from, to, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch search terms"})
 		return

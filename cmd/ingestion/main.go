@@ -23,7 +23,7 @@ import (
 func main() {
 	// ── Logger ────────────────────────────────────────────────────────────────
 	log, _ := zap.NewProduction()
-	defer log.Sync()
+	defer func() { _ = log.Sync() }()
 
 	// ── Config ────────────────────────────────────────────────────────────────
 	cfg, err := config.Load()

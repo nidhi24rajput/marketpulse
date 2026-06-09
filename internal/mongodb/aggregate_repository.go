@@ -50,7 +50,7 @@ func (r *AggregateRepo) GetDailyAggregates(ctx context.Context, storeID string, 
 	if err != nil {
 		return nil, fmt.Errorf("aggregate_repo: get daily failed: %w", err)
 	}
-	defer cursor.Close(ctx)
+	defer func() { _ = cursor.Close(ctx) }()
 	var aggs []*domain.DailyAggregate
 	if err := cursor.All(ctx, &aggs); err != nil {
 		return nil, err
@@ -63,9 +63,9 @@ func (r *AggregateRepo) GetTopProducts(ctx context.Context, storeID string, from
 	pipeline := mongo.Pipeline{
 		// Stage 1: filter orders in range
 		{{Key: "$match", Value: bson.M{
-			"store_id": storeID,
+			"store_id":  storeID,
 			"placed_at": bson.M{"$gte": from, "$lte": to},
-			"status":   bson.M{"$nin": []string{"cancelled", "refunded"}},
+			"status":    bson.M{"$nin": []string{"cancelled", "refunded"}},
 		}}},
 		// Stage 2: unwind line items
 		{{Key: "$unwind", Value: "$line_items"}},
@@ -86,7 +86,7 @@ func (r *AggregateRepo) GetTopProducts(ctx context.Context, storeID string, from
 	if err != nil {
 		return nil, fmt.Errorf("aggregate_repo: top products failed: %w", err)
 	}
-	defer cursor.Close(ctx)
+	defer func() { _ = cursor.Close(ctx) }()
 	var products []*domain.TopProduct
 	if err := cursor.All(ctx, &products); err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func (r *AggregateRepo) GetTopSearchTerms(ctx context.Context, storeID string, f
 	if err != nil {
 		return nil, fmt.Errorf("aggregate_repo: top searches failed: %w", err)
 	}
-	defer cursor.Close(ctx)
+	defer func() { _ = cursor.Close(ctx) }()
 	var terms []*domain.SearchTerm
 	if err := cursor.All(ctx, &terms); err != nil {
 		return nil, err

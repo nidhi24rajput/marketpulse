@@ -63,7 +63,7 @@ func (h *Handler) TrackEvent(c *gin.Context) {
 		return
 	}
 
-	storeID, _ := c.Get("store_id")
+	storeID := c.GetString("store_id")
 
 	ts := time.Now().UTC()
 	if req.Timestamp != nil {
@@ -75,7 +75,7 @@ func (h *Handler) TrackEvent(c *gin.Context) {
 		Type:       req.Type,
 		SessionID:  req.SessionID,
 		UserID:     req.UserID,
-		StoreID:    storeID.(string),
+		StoreID:    storeID,
 		Properties: req.Properties,
 		Timestamp:  ts,
 		ReceivedAt: time.Now().UTC(),
@@ -104,7 +104,7 @@ func (h *Handler) TrackBatch(c *gin.Context) {
 		return
 	}
 
-	storeID, _ := c.Get("store_id")
+	storeID := c.GetString("store_id")
 	ids := make([]string, 0, len(reqs))
 
 	for _, req := range reqs {
@@ -117,7 +117,7 @@ func (h *Handler) TrackBatch(c *gin.Context) {
 			Type:       req.Type,
 			SessionID:  req.SessionID,
 			UserID:     req.UserID,
-			StoreID:    storeID.(string),
+			StoreID:    storeID,
 			Properties: req.Properties,
 			Timestamp:  ts,
 			ReceivedAt: time.Now().UTC(),
@@ -142,14 +142,14 @@ func (h *Handler) TrackOrder(c *gin.Context) {
 		return
 	}
 
-	storeID, _ := c.Get("store_id")
+	storeID := c.GetString("store_id")
 	if req.OrderID == "" {
 		req.OrderID = uuid.New().String()
 	}
 
 	order := &domain.Order{
 		ID:        req.OrderID,
-		StoreID:   storeID.(string),
+		StoreID:   storeID,
 		SessionID: req.SessionID,
 		UserID:    req.UserID,
 		Status:    domain.OrderStatusPaid,
@@ -170,7 +170,7 @@ func (h *Handler) TrackOrder(c *gin.Context) {
 		Type:       domain.EventTypeOrderPlaced,
 		SessionID:  req.SessionID,
 		UserID:     req.UserID,
-		StoreID:    storeID.(string),
+		StoreID:    storeID,
 		Properties: map[string]any{"order": order},
 		Timestamp:  time.Now().UTC(),
 		ReceivedAt: time.Now().UTC(),

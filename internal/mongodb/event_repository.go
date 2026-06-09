@@ -87,7 +87,7 @@ func (r *EventRepo) CountByType(ctx context.Context, storeID string, eventType d
 }
 
 func decodeEvents(ctx context.Context, cursor *mongo.Cursor) ([]*domain.Event, error) {
-	defer cursor.Close(ctx)
+	defer func() { _ = cursor.Close(ctx) }()
 	var events []*domain.Event
 	if err := cursor.All(ctx, &events); err != nil {
 		return nil, err

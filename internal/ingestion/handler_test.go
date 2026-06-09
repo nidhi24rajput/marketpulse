@@ -25,8 +25,11 @@ func init() {
 // mockPublisher records published messages — no real Kafka needed.
 type mockPublisher struct {
 	mu       sync.Mutex
-	messages []struct{ topic, key string; value any }
-	err      error
+	messages []struct {
+		topic, key string
+		value      any
+	}
+	err error
 }
 
 func (m *mockPublisher) Publish(_ context.Context, topic, key string, v any) error {
@@ -35,7 +38,10 @@ func (m *mockPublisher) Publish(_ context.Context, topic, key string, v any) err
 	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.messages = append(m.messages, struct{ topic, key string; value any }{topic, key, v})
+	m.messages = append(m.messages, struct {
+		topic, key string
+		value      any
+	}{topic, key, v})
 	return nil
 }
 
@@ -101,7 +107,7 @@ func TestTrackEvent_MissingStoreHeader(t *testing.T) {
 	}
 	// No X-Store-ID header
 	data, _ := json.Marshal(body)
-	req := httptest.NewRequest(http.MethodPost, "/v1/events", bytes.NewReader(data))
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/v1/events", bytes.NewReader(data))
 	req.Header.Set("Content-Type", "application/json")
 
 	w := httptest.NewRecorder()
@@ -202,7 +208,7 @@ func postJSON(t *testing.T, router *gin.Engine, path string, body any, storeID s
 	data, err := json.Marshal(body)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest(http.MethodPost, path, bytes.NewReader(data))
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, path, bytes.NewReader(data))
 	req.Header.Set("Content-Type", "application/json")
 	if storeID != "" {
 		req.Header.Set("X-Store-ID", storeID)

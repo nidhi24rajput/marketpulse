@@ -16,11 +16,11 @@ import (
 
 // Processor handles Kafka messages and writes to MongoDB + Redis.
 type Processor struct {
-	events  *mongodb.EventRepo
-	orders  *mongodb.OrderRepo
-	aggs    *mongodb.AggregateRepo
-	redis   *mredis.Client
-	log     *zap.Logger
+	events *mongodb.EventRepo
+	orders *mongodb.OrderRepo
+	aggs   *mongodb.AggregateRepo
+	redis  *mredis.Client
+	log    *zap.Logger
 }
 
 func NewProcessor(
@@ -56,6 +56,7 @@ func (p *Processor) Handle(ctx context.Context, msg kafka.Message) error {
 		if err := p.processOrder(ctx, &event); err != nil {
 			p.log.Warn("order processing failed", zap.String("event_id", event.ID), zap.Error(err))
 		}
+	default:
 	}
 
 	// Update real-time counters in Redis
@@ -100,15 +101,15 @@ func (p *Processor) updateRealtime(ctx context.Context, event *domain.Event) err
 	pipe := p.redis.Pipeline(ctx)
 
 	key := fmt.Sprintf("rt:events:%s", event.StoreID)
-	p.redis.IncrWithExpiry(ctx, key, 5*time.Minute)
+	_, _ = p.redis.IncrWithExpiry(ctx, key, 5*time.Minute)
 
 	// Track active sessions (5-min sliding window)
 	sessionKey := fmt.Sprintf("rt:sessions:%s", event.StoreID)
-	p.redis.AddToSetWithExpiry(ctx, sessionKey, event.SessionID, 5*time.Minute)
+	_ = p.redis.AddToSetWithExpiry(ctx, sessionKey, event.SessionID, 5*time.Minute)
 
 	if event.Type == domain.EventTypeOrderPlaced || event.Type == domain.EventTypeOrderPaid {
 		orderKey := fmt.Sprintf("rt:orders:%s", event.StoreID)
-		p.redis.IncrWithExpiry(ctx, orderKey, 5*time.Minute)
+		_, _ = p.redis.IncrWithExpiry(ctx, orderKey, 5*time.Minute)
 	}
 
 	_ = pipe
@@ -152,6 +153,7 @@ func (p *Processor) updateDailyAggregate(ctx context.Context, event *domain.Even
 				agg.Revenue += order.Total
 			}
 		}
+	default:
 	}
 
 	return p.aggs.UpsertDailyAggregate(ctx, agg)
